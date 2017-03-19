@@ -178,4 +178,29 @@ public class UserType {
         this.city = value;
     }
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		UserType userType = (UserType) o;
+
+		return id.equals(userType.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "UserType{" +
+				"fullName='" + fullName + '\'' +
+				", id='" + id + '\'' +
+				", email='" + email + '\'' +
+				", flag=" + flag +
+				", city=" + city +
+				'}';
+	}
 }
