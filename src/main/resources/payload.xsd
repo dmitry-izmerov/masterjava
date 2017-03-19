@@ -21,20 +21,69 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+                <xs:element name="Projects">
+                    <xs:complexType>
+                        <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                            <xs:element ref="Project"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
             </xs:all>
+        </xs:complexType>
+        <!--<xs:key name="PK_Users">
+            <xs:selector xpath="Payload/Users/User"/>
+            <xs:field xpath="@id"/>
+        </xs:key>
+        <xs:keyref name="FK_Group_To_Users" refer="PK_Users">
+            <xs:selector xpath="Group/Participant"/>
+            <xs:field xpath="@userId"/>
+        </xs:keyref>-->
+    </xs:element>
+
+    <xs:element name="Project">
+        <xs:complexType>
+            <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                <xs:element ref="Group"/>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="name" use="required"/>
+            <xs:attribute type="xs:string" name="description" use="optional"/>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="User">
+    <xs:element name="Group">
         <xs:complexType>
-            <xs:sequence>
-                <xs:element type="xs:string" name="email"/>
-                <xs:element type="xs:string" name="fullName"/>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="Participant">
+                    <xs:complexType>
+                        <xs:attribute name="user" type="xs:IDREF"/>
+                    </xs:complexType>
+                </xs:element>
             </xs:sequence>
-            <xs:attribute type="flagType" name="flag" use="required"/>
-            <xs:attribute type="xs:IDREF" name="city" use="required"/>
+            <xs:attribute type="xs:string" name="name" use="required"/>
+            <xs:attribute type="groupType" name="type" use="required"/>
         </xs:complexType>
     </xs:element>
+
+    <xs:element name="User" type="userType"/>
+    <xs:element name="City" type="cityType"/>
+
+    <xs:simpleType name="groupType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="REGISTERING"/>
+            <xs:enumeration value="CURRENT"/>
+            <xs:enumeration value="FINISHED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="userType">
+        <xs:sequence minOccurs="0">
+            <xs:element type="xs:string" name="fullName"/>
+        </xs:sequence>
+        <xs:attribute type="xs:ID" name="id" use="required"/>
+        <xs:attribute type="xs:string" name="email" use="required"/>
+        <xs:attribute type="flagType" name="flag" use="required"/>
+        <xs:attribute type="xs:IDREF" name="city"/>
+    </xs:complexType>
 
     <xs:simpleType name="flagType">
         <xs:restriction base="xs:string">
@@ -43,8 +92,6 @@
             <xs:enumeration value="superuser"/>
         </xs:restriction>
     </xs:simpleType>
-
-    <xs:element name="City" type="cityType"/>
 
     <xs:complexType name="cityType">
         <xs:simpleContent>
