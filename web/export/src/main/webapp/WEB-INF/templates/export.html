@@ -4,12 +4,16 @@
 </head>
 <body>
 <form action="" method="post" enctype="multipart/form-data">
-    <h3>Select xml file to upload</h3>
+    <h3>Select xml file to save users</h3>
     <p>
-        <input type="file" name="fileToUpload" id="fileToUpload"><br/>
+        <input id="fileToUpload" type="file" name="fileToUpload"><br/>
     </p>
     <p>
-        <input type="submit" value="Upload" name="submit">
+        <label for="chunkSize">Chunk size for batch insert:</label>
+        <input id="chunkSize" type="number" min="10" max="100" name="chunkSize" value="10"><br/>
+    </p>
+    <p>
+        <input type="submit" value="Save" name="submit">
     </p>
 </form>
 </body>

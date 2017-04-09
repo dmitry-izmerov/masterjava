@@ -20,6 +20,7 @@
 
         <masterjava.config>/apps/masterjava/config/</masterjava.config>
         <dependency.locations.enabled>false</dependency.locations.enabled>
+        <tomcat.version>8.0.26</tomcat.version>
     </properties>
 
     <build>

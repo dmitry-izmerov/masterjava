@@ -9,6 +9,7 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * gkislin
@@ -16,7 +17,7 @@ import java.util.List;
  */
 public class UserExport {
 
-    public List<User> process(final InputStream is) throws XMLStreamException {
+    public List<User> process(final InputStream is, Consumer<User> afterProcessOfOneUser) throws XMLStreamException {
         final StaxStreamProcessor processor = new StaxStreamProcessor(is);
         List<User> users = new ArrayList<>();
 
@@ -26,6 +27,7 @@ public class UserExport {
             final String fullName = processor.getReader().getElementText();
             final User user = new User(fullName, email, flag);
             users.add(user);
+			afterProcessOfOneUser.accept(user);
         }
         return users;
     }

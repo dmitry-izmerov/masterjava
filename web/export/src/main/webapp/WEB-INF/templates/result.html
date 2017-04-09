@@ -4,23 +4,48 @@
     <title>Uploaded users</title>
 </head>
 <body>
-<h4><a href="">Export XML</a></h4>
-<h3>Uploaded users</h3>
-<table border="1" cellpadding="8" cellspacing="0">
-    <thead>
-    <tr>
-        <th>Full Name</th>
-        <th>Email</th>
-        <th>Flag</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="user : ${users}">
-        <td th:text="${user.fullName}"></td>
-        <td th:utext="${user.email}"></td>
-        <td th:text="${user.flag}"></td>
-    </tr>
-    </tbody>
-</table>
+    <h4><a href="">Export XML</a></h4>
+    <h3>Uploaded users</h3>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Flag</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.fullName}"></td>
+            <td th:utext="${user.email}"></td>
+            <td th:text="${user.flag}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <h3>Saved users:</h3>
+    <div th:if="${savingResults.failedCause != null}">
+        <b style="color: crimson;">Users saving is failed</b>
+    </div>
+    <table th:if="${savingResults.failedCause == null}" border="1" cellpadding="8" cellspacing="0">
+        <thead>
+        <tr>
+            <th>Chunk number</th>
+            <th>Users with emails:</th>
+            <th>Result:</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item,iterStat : ${savingResults.results}">
+                <td th:text="${iterStat.count}"></td>
+                <td>
+                    <span th:each="user,usersIter: ${item.users}">
+                        <span th:text="${user.email}"></span>
+                        <span th:if="${not usersIter.last}">,</span>
+                    </span>
+                </td>
+                <td th:utext="${item.result}"></td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
