@@ -27,24 +27,43 @@ public class StaxStreamProcessor implements AutoCloseable {
         return doUntilAny(stopEvent, value) != null;
     }
 
+	public boolean doUntil(int stopItemEvent, String stopItemValue, int finishEvent, String finishValue) throws XMLStreamException {
+		while (reader.hasNext()) {
+			int event = reader.next();
+			if (event != stopItemEvent && event != finishEvent) {
+				continue;
+			}
+
+			String xmlValue = getValue(event);
+			if (event == stopItemEvent && xmlValue.equals(stopItemValue)) {
+				return true;
+			}
+
+			if (event == finishEvent && xmlValue.equals(finishValue)) {
+				return false;
+			}
+		}
+		return false;
+	}
+
     public String getAttribute(String name) throws XMLStreamException {
         return reader.getAttributeValue(null, name);
     }
 
-    public String doUntilAny(int stopEvent, String... values) throws XMLStreamException {
-        while (reader.hasNext()) {
-            int event = reader.next();
-            if (event == stopEvent) {
-                String xmlValue = getValue(event);
-                for (String value : values) {
-                    if (value.equals(xmlValue)) {
-                        return xmlValue;
-                    }
-                }
-            }
-        }
-        return null;
-    }
+	public String doUntilAny(int stopEvent, String... values) throws XMLStreamException {
+		while (reader.hasNext()) {
+			int event = reader.next();
+			if (event == stopEvent) {
+				String xmlValue = getValue(event);
+				for (String value : values) {
+					if (value.equals(xmlValue)) {
+						return xmlValue;
+					}
+				}
+			}
+		}
+		return null;
+	}
 
     public String getValue(int event) throws XMLStreamException {
         return (event == XMLEvent.CHARACTERS) ? reader.getText() : reader.getLocalName();

@@ -4,20 +4,24 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import ru.javaops.masterjava.persist.DBIProvider;
+import ru.javaops.masterjava.persist.dao.CityDao;
 import ru.javaops.masterjava.persist.dao.UserDao;
+import ru.javaops.masterjava.persist.model.City;
 import ru.javaops.masterjava.persist.model.User;
 import ru.javaops.masterjava.persist.model.UserFlag;
 import ru.javaops.masterjava.xml.util.StaxStreamProcessor;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * gkislin
@@ -29,8 +33,9 @@ public class UserExport {
     private static final int NUMBER_THREADS = 4;
     private final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_THREADS);
     private final UserDao userDao = DBIProvider.getDao(UserDao.class);
+	private final CityDao cityDao = DBIProvider.getDao(CityDao.class);
 
-    @Value
+	@Value
     public static class FailedEmail {
         public String emailOrRange;
         public String reason;
@@ -41,7 +46,7 @@ public class UserExport {
         }
     }
 
-    public List<FailedEmail> process(final InputStream is, int chunkSize) throws XMLStreamException {
+    public List<FailedEmail> process(final StaxStreamProcessor processor, int chunkSize) throws XMLStreamException {
         log.info("Start proseccing with chunkSize=" + chunkSize);
 
         return new Callable<List<FailedEmail>>() {
@@ -60,17 +65,26 @@ public class UserExport {
 
             @Override
             public List<FailedEmail> call() throws XMLStreamException {
-                List<ChunkFuture> futures = new ArrayList<>();
+				List<ChunkFuture> futures = new ArrayList<>();
 
-                int id = userDao.getSeqAndSkip(chunkSize);
-                List<User> chunk = new ArrayList<>(chunkSize);
-                final StaxStreamProcessor processor = new StaxStreamProcessor(is);
+				Map<String, City> cities = cityDao.getAll().stream()
+					.collect(Collectors.toMap(City::getAlias, Function.identity()));
+				int id = userDao.getSeqAndSkip(chunkSize);
+				List<User> chunk = new ArrayList<>(chunkSize);
+				List<FailedEmail> failed = new ArrayList<>();
 
-                while (processor.doUntil(XMLEvent.START_ELEMENT, "User")) {
-                    final String email = processor.getAttribute("email");
-                    final UserFlag flag = UserFlag.valueOf(processor.getAttribute("flag"));
-                    final String fullName = processor.getReader().getElementText();
-                    final User user = new User(id++, fullName, email, flag);
+				while (processor.doUntil(XMLEvent.START_ELEMENT, "User")) {
+					final UserFlag flag = UserFlag.valueOf(processor.getAttribute("flag"));
+					final String alias = processor.getAttribute("city");
+					final String email = processor.getAttribute("email");
+					final String fullName = processor.getText();
+					City city = cities.get(alias);
+					if (city == null) {
+						failed.add(new FailedEmail(email, "pointed city doesn't exist in db"));
+						continue;
+					}
+
+					final User user = new User(id++, fullName, email, flag, city);
                     chunk.add(user);
                     if (chunk.size() == chunkSize) {
                         futures.add(submit(chunk));
@@ -83,7 +97,6 @@ public class UserExport {
                     futures.add(submit(chunk));
                 }
 
-                List<FailedEmail> failed = new ArrayList<>();
                 futures.forEach(cf -> {
                     try {
                         failed.addAll(StreamEx.of(cf.future.get()).map(email -> new FailedEmail(email, "already present")).toList());
