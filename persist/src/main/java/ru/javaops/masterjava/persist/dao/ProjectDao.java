@@ -4,16 +4,21 @@ import com.bertoncelj.jdbi.entitymapper.EntityMapperFactory;
 import one.util.streamex.StreamEx;
 import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 import ru.javaops.masterjava.persist.model.Project;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 @RegisterMapperFactory(EntityMapperFactory.class)
 public abstract class ProjectDao implements AbstractDao {
+
+	@SqlQuery("SELECT last_value FROM common_seq")
+	public abstract int getCurrentId();
 
     @SqlUpdate("TRUNCATE project CASCADE ")
     @Override
@@ -34,4 +39,7 @@ public abstract class ProjectDao implements AbstractDao {
         int id = insertGeneratedId(project);
         project.setId(id);
     }
+
+	@SqlBatch("INSERT INTO project (id, name, description) VALUES (:id, :name, :description)")
+	public abstract void insertBatch(@BindBean Collection<Project> projects);
 }
