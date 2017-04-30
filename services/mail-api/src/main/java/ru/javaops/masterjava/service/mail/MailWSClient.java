@@ -1,5 +1,6 @@
 package ru.javaops.masterjava.service.mail;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
 import ru.javaops.masterjava.web.WsClient;
@@ -19,9 +20,13 @@ public class MailWSClient {
         WS_CLIENT.init("mail", "/mail/mailService?wsdl");
     }
 
-
     public static void sendMail(final Set<Addressee> to, final Set<Addressee> cc, final String subject, final String body) {
         log.info("Send mail to '" + to + "' cc '" + cc + "' subject '" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
         WS_CLIENT.getPort().sendToGroup(to, cc, subject, body);
     }
+
+	public static void sendMails(ImmutableSet<Addressee> to, String subject, String body) {
+		log.info("Send mail to '" + to + "' subject '" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
+		WS_CLIENT.getPort().sendBulk(to, subject, body);
+	}
 }

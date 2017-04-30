@@ -18,6 +18,18 @@
 
     <build>
         <finalName>webapp</finalName>
+
+        <resources>
+            <resource>
+                <directory>${masterjava.config}</directory>
+                <includes>
+                    <include>wsdl/mailService.wsdl</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/webapp/WEB-INF</directory>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
@@ -25,6 +37,54 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>persist</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.javaops</groupId>
+            <artifactId>mail-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.javaops</groupId>
+            <artifactId>mail-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>2.2.10</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jvnet.mimepull</groupId>
+                    <artifactId>mimepull</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jvnet.staxex</groupId>
+                    <artifactId>stax-ex</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.soap</groupId>
+                    <artifactId>javax.xml.soap-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.staxex</groupId>
+            <artifactId>stax-ex</artifactId>
+            <version>1.7.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

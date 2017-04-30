@@ -7,6 +7,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.BatchChunkSize;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 import ru.javaops.masterjava.persist.DBIProvider;
 import ru.javaops.masterjava.persist.model.User;
+import ru.javaops.masterjava.persist.model.UserFlag;
 
 import java.util.List;
 
@@ -48,6 +49,9 @@ public abstract class UserDao implements AbstractDao {
 
     @SqlQuery("SELECT * FROM users ORDER BY full_name, email LIMIT :it")
     public abstract List<User> getWithLimit(@Bind int limit);
+
+	@SqlQuery("SELECT * FROM users WHERE flag = CAST(:flag AS USER_FLAG) ORDER BY full_name, email LIMIT :limit")
+	public abstract List<User> getWithLimitByFlag(@Bind("flag") UserFlag userFlag, @Bind("limit") int limit);
 
     //   http://stackoverflow.com/questions/13223820/postgresql-delete-all-content
     @SqlUpdate("TRUNCATE users CASCADE")
