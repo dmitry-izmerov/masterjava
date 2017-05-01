@@ -18,18 +18,24 @@
 
     <build>
         <finalName>webapp</finalName>
-
-        <resources>
-            <resource>
-                <directory>${masterjava.config}</directory>
-                <includes>
-                    <include>wsdl/mailService.wsdl</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/webapp/WEB-INF</directory>
-            </resource>
-        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration combine.self="override">
+                    <webResources>
+                        <resource>
+                            <directory>${masterjava.config}</directory>
+                            <includes>
+                                <include>wsdl/mailService.wsdl</include>
+                            </includes>
+                            <targetPath>WEB-INF</targetPath>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
     <dependencies>
