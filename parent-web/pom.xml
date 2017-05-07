@@ -11,6 +11,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <github.user.name>dmitry-izmerov</github.user.name>
+        <github.project.name>masterjava</github.project.name>
+        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+    </properties>
+
     <artifactId>parent-web</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -19,11 +25,41 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>${buildnumber-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp</directory>
+                        </resource>
+                        <resource>
+                            <directory>${masterjava.config}</directory>
+                            <includes>
+                                <include>version.html</include>
+                            </includes>
+                            <filtering>true</filtering>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
 
@@ -66,19 +102,20 @@
                     </deployables>
                 </configuration>
             </plugin>
-
         </plugins>
 
         <resources>
             <resource>
-                <directory>${masterjava.config}</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
-                <includes>
-                    <include>logback.xml</include>
-                </includes>
             </resource>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>${masterjava.config}</directory>
+                <includes>
+                    <include>logback.xml</include>
+                    <include>app.conf</include>
+                </includes>
+                <filtering>true</filtering>
             </resource>
         </resources>
     </build>
@@ -96,6 +133,13 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <scm>
+        <connection>scm:git:https://github.com/${github.user.name}/${github.project.name}.git</connection>
+        <developerConnection>scm:git:https://github.com/${github.user.name}/${github.project.name}.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/${github.user.name}/${github.project.name}.git</url>
+    </scm>
 
     <profiles>
     </profiles>

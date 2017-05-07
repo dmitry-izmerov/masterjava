@@ -9,6 +9,7 @@ import ru.javaops.web.WebStateException;
 import ru.javaops.web.WsClient;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.Set;
 
 @Slf4j
@@ -16,9 +17,11 @@ public class MailWSClient {
     private static final WsClient<MailService> WS_CLIENT;
 
     static {
-        WS_CLIENT = new WsClient<MailService>(Resources.getResource("wsdl/mailService.wsdl"),
-                new QName("http://mail.javaops.ru/", "MailServiceImplService"),
-                MailService.class);
+        WS_CLIENT = new WsClient<>(
+        	Resources.getResource("wsdl/mailService.wsdl"),
+			new QName("http://mail.javaops.ru/", "MailServiceImplService"),
+			MailService.class
+		);
 
         WS_CLIENT.init("mail", "/mail/mailService?wsdl");
     }
@@ -37,11 +40,11 @@ public class MailWSClient {
         return status;
     }
 
-    public static GroupResult sendBulk(final Set<Addressee> to, final String subject, final String body) throws WebStateException {
+    public static GroupResult sendBulk(final Set<Addressee> to, final String subject, final String body, final Collection<Attachment> attachments) throws WebStateException {
         log.info("Send mail to '" + to + "' subject '" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
         GroupResult result;
         try {
-            result = WS_CLIENT.getPort().sendBulk(to, subject, body);
+            result = WS_CLIENT.getPort().sendBulk(to, subject, body, attachments);
         } catch (WebStateException e) {
             log.error("sendBulk failed", e);
             throw WsClient.getWebStateException(e);

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import ru.javaops.masterjava.ExceptionType;
 import ru.javaops.masterjava.persist.DBIProvider;
@@ -11,6 +12,8 @@ import ru.javaops.masterjava.service.mail.persist.MailCase;
 import ru.javaops.masterjava.service.mail.persist.MailCaseDao;
 import ru.javaops.web.WebStateException;
 
+import javax.activation.DataSource;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -21,12 +24,16 @@ import java.util.Set;
 public class MailSender {
     private static final MailCaseDao MAIL_CASE_DAO = DBIProvider.getDao(MailCaseDao.class);
 
-    static MailResult sendTo(Addressee to, String subject, String body) throws WebStateException {
-        val state = sendToGroup(ImmutableSet.of(to), ImmutableSet.of(), subject, body);
+    static MailResult sendTo(Addressee to, String subject, String body, Collection<Attachment> attachments) throws WebStateException {
+        val state = sendToGroup(ImmutableSet.of(to), ImmutableSet.of(), subject, body, attachments);
         return new MailResult(to.getEmail(), state);
     }
 
-    static String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body) throws WebStateException {
+	static String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body) throws WebStateException {
+    	return sendToGroup(to, cc, subject, body, null);
+	}
+
+    static String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body, Collection<Attachment> attachments) throws WebStateException {
         log.info("Send mail to \'" + to + "\' cc \'" + cc + "\' subject \'" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
         String state = MailResult.OK;
         try {
@@ -40,8 +47,16 @@ public class MailSender {
                 email.addCc(addressee.getEmail(), addressee.getName());
             }
 
-            //            https://yandex.ru/blog/company/66296
+			if (attachments != null) {
+				for(Attachment attachment : attachments) {
+					DataSource dataSource = attachment.getDataHandler().getDataSource();
+					email.attach(dataSource, attachment.getName(), "", EmailAttachment.ATTACHMENT);
+				}
+			}
+
+            // https://yandex.ru/blog/company/66296
             email.setHeaders(ImmutableMap.of("List-Unsubscribe", "<mailto:masterjava@javaops.ru?subject=Unsubscribe&body=Unsubscribe>"));
+
             email.send();
         } catch (EmailException e) {
             log.error(e.getMessage(), e);

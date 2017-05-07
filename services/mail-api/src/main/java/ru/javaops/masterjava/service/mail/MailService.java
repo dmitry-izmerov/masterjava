@@ -5,6 +5,7 @@ import ru.javaops.web.WebStateException;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
+import java.util.Collection;
 import java.util.Set;
 
 @WebService(targetNamespace = "http://mail.javaops.ru/")
@@ -25,6 +26,6 @@ public interface MailService {
     GroupResult sendBulk(
             @WebParam(name = "to") Set<Addressee> to,
             @WebParam(name = "subject") String subject,
-            @WebParam(name = "body") String body) throws WebStateException;
-
+            @WebParam(name = "body") String body,
+			@WebParam(name = "attachments") Collection<Attachment> attachments) throws WebStateException;
 }
