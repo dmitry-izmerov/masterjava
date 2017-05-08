@@ -31,8 +31,12 @@ public class WsClient<T> {
     }
 
     public void init(String host, String endpointAddress) {
-        this.endpointAddress = HOSTS.getString(host) + endpointAddress;
+        this.endpointAddress = getProperty(host, "endpoint") + endpointAddress;
     }
+
+    public String getProperty(String host, String propertyName) {
+		return HOSTS.getConfig(host).getString(propertyName);
+	}
 
     //  Post is not thread-safe (http://stackoverflow.com/a/10601916/548473)
     public T getPort(WebServiceFeature... features) {

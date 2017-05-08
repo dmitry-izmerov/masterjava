@@ -6,7 +6,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.event.Level;
-import ru.javaops.web.AuthUtil;
 import ru.javaops.web.WebStateException;
 import ru.javaops.web.WsClient;
 import ru.javaops.web.handler.SoapClientLoggingHandler;
@@ -19,20 +18,17 @@ import java.util.Set;
 @Slf4j
 public class MailWSClient {
     private static final WsClient<MailService> WS_CLIENT;
-    public static final String USER = "user";
-    public static final String PASSWORD = "password";
-    private static final SoapClientLoggingHandler LOGGING_HANDLER = new SoapClientLoggingHandler(Level.DEBUG);
+	private static final String MAIL_WS_NAME = "mail";
 
-    public static String AUTH_HEADER = AuthUtil.encodeBasicAuthHeader(USER, PASSWORD);
-
-    static {
-        WS_CLIENT = new WsClient<MailService>(Resources.getResource("wsdl/mailService.wsdl"),
+	static {
+        WS_CLIENT = new WsClient<>(Resources.getResource("wsdl/mailService.wsdl"),
                 new QName("http://mail.javaops.ru/", "MailServiceImplService"),
                 MailService.class);
 
-        WS_CLIENT.init("mail", "/mail/mailService?wsdl");
+        WS_CLIENT.init(MAIL_WS_NAME, "/mail/mailService?wsdl");
     }
 
+	private static final SoapClientLoggingHandler LOGGING_HANDLER = new SoapClientLoggingHandler(Level.valueOf(WS_CLIENT.getProperty(MAIL_WS_NAME, "debug.client")));
 
     public static String sendToGroup(final Set<Addressee> to, final Set<Addressee> cc, final String subject, final String body, List<Attach> attaches) throws WebStateException {
         log.info("Send mail to '" + to + "' cc '" + cc + "' subject '" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
@@ -62,7 +58,7 @@ public class MailWSClient {
 
     private static MailService getPort() {
         MailService port = WS_CLIENT.getPort(new MTOMFeature(1024));
-        WsClient.setAuth(port, USER, PASSWORD);
+        WsClient.setAuth(port, WS_CLIENT.getProperty(MAIL_WS_NAME, "user"), WS_CLIENT.getProperty(MAIL_WS_NAME, "password"));
         WsClient.setHandler(port, LOGGING_HANDLER);
         return port;
     }

@@ -20,4 +20,8 @@ public abstract class SoapBaseHandler implements MessageHandler<MessageHandlerCo
     protected static boolean isOutbound(MessageHandlerContext context) {
         return (Boolean) context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
     }
+
+	protected static boolean isInbound(MessageHandlerContext context) {
+		return !(Boolean) context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
+	}
 }
