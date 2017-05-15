@@ -1,12 +1,20 @@
 package ru.javaops.masterjava.service.mail.jms;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import ru.javaops.masterjava.service.mail.Attach;
+import ru.javaops.masterjava.service.mail.GroupResult;
+import ru.javaops.masterjava.service.mail.MailWSClient;
+import ru.javaops.masterjava.service.mail.util.Attachments;
+import ru.javaops.masterjava.util.FileInfo;
 
 import javax.jms.*;
 import javax.naming.InitialContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import java.util.List;
 
 @WebListener
 @Slf4j
@@ -18,8 +26,8 @@ public class JmsListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         try {
             InitialContext initCtx = new InitialContext();
-            QueueConnectionFactory connectionFactory =
-                    (QueueConnectionFactory) initCtx.lookup("java:comp/env/jms/ConnectionFactory");
+			ActiveMQConnectionFactory connectionFactory = (ActiveMQConnectionFactory) initCtx.lookup("java:comp/env/jms/ConnectionFactory");
+			connectionFactory.setTrustAllPackages(true);
             connection = connectionFactory.createQueueConnection();
             QueueSession queueSession = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
             Queue queue = (Queue) initCtx.lookup("java:comp/env/jms/queue/MailQueue");
@@ -27,19 +35,26 @@ public class JmsListener implements ServletContextListener {
             connection.start();
             log.info("Listen JMS messages ...");
             listenerThread = new Thread(() -> {
-                try {
-                    while (!Thread.interrupted()) {
-                        Message m = receiver.receive();
-                        // TODO implement mail sending
-                        if (m instanceof TextMessage) {
-                            TextMessage tm = (TextMessage) m;
-                            String text = tm.getText();
-                            log.info(String.format("Received TextMessage with text '%s'.", text));
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Receiving messages failed: " + e.getMessage(), e);
-                }
+				while (!Thread.interrupted()) {
+					try {
+						Message m = receiver.receive();
+						if (m instanceof ObjectMessage) {
+							ObjectMessage objectMessage = (ObjectMessage) m;
+							String users = objectMessage.getStringProperty("users");
+							String subject = objectMessage.getStringProperty("subject");
+							String body = objectMessage.getStringProperty("body");
+							List<Attach> attaches = Lists.newArrayList();
+							List<FileInfo> files = (List<FileInfo>) objectMessage.getObject();
+							for (FileInfo fileInfo : files) {
+								attaches.add(Attachments.of(fileInfo));
+							}
+							GroupResult groupResult = MailWSClient.sendBulk(MailWSClient.split(users), subject, body, attaches);
+							log.info("Result of mailing: {}.", groupResult);
+						}
+					} catch (Exception e) {
+						log.error("Receiving messages failed: " + e.getMessage(), e);
+					}
+				}
             });
             listenerThread.start();
         } catch (Exception e) {

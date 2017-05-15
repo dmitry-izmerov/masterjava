@@ -1,45 +1,22 @@
 package ru.javaops.masterjava.service.mail.util;
 
-import lombok.AllArgsConstructor;
-import org.apache.commons.io.input.CloseShieldInputStream;
+import com.google.common.io.ByteStreams;
 import ru.javaops.masterjava.service.mail.Attach;
+import ru.javaops.masterjava.util.FileInfo;
 
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import javax.mail.util.ByteArrayDataSource;
 
 public class Attachments {
-    public static Attach getAttach(String name, InputStream inputStream) {
-        return new Attach(name, new DataHandler(new InputStreamDataSource(inputStream)));
+    public static Attach getAttach(String name, String contentType, InputStream inputStream) throws IOException {
+		ByteArrayDataSource dataSource = new ByteArrayDataSource(ByteStreams.toByteArray(inputStream), contentType);
+        return new Attach(name, new DataHandler(dataSource));
     }
 
-    //    http://stackoverflow.com/questions/2830561/how-to-convert-an-inputstream-to-a-datahandler
-    //    http://stackoverflow.com/a/5924019/548473
-
-    @AllArgsConstructor
-    private static class InputStreamDataSource implements DataSource {
-        private InputStream inputStream;
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new CloseShieldInputStream(inputStream);
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        @Override
-        public String getContentType() {
-            return "application/octet-stream";
-        }
-
-        @Override
-        public String getName() {
-            return "";
-        }
-    }
+	public static Attach of(FileInfo fileInfo) {
+		ByteArrayDataSource dataSource = new ByteArrayDataSource(fileInfo.getBytes(), fileInfo.getContentType());
+		return new Attach(fileInfo.getFileName(), new DataHandler(dataSource));
+	}
 }

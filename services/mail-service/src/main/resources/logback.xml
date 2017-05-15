@@ -9,7 +9,7 @@
     <!-- To enable JMX Management -->
     <jmxConfigurator/>
 
-    <property name="LOG_DIR" value="/apps/masterjava/logs/"/>
+    <property name="LOG_DIR" value="/home/demi/apps/masterjava/logs/"/>
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/mail.log</file>

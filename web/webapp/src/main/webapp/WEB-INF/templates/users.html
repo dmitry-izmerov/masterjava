@@ -36,9 +36,9 @@
         </tbody>
     </table>
     <hr/>
-    <input type="radio" name="transport" onchange="setFormAttr('SOAP')" checked>SOAP<br>
-    <input type="radio" name="transport" onchange="setFormAttr('REST')">REST<br>
-    <input type="radio" name="transport" onchange="setFormAttr('JMS')">JMS<br>
+    <label><input type="radio" name="transport" onchange="setFormAttr('SOAP')" checked>SOAP</label><br>
+    <label><input type="radio" name="transport" onchange="setFormAttr('REST')">REST</label><br>
+    <label><input type="radio" name="transport" onchange="setFormAttr('JMS')">JMS</label><br>
 
     <form enctype="multipart/form-data" action="send" method=post
           target="result" onsubmit="window.open('','result','width=800,height=400,menubar=no');">
@@ -64,13 +64,10 @@
         var form = $("form");
         if (transport == 'SOAP') {
             form.attr("action", 'send');
-            form.attr("enctype", 'multipart/form-data');
         } else if(transport == 'REST'){
             form.attr("action", '/mail/rest/send');
-            form.attr("enctype", 'application/x-www-form-urlencoded');
         } else {
             form.attr("action", 'sendJms');
-            form.attr("enctype", 'application/x-www-form-urlencoded');
         }
     }
 

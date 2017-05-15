@@ -34,7 +34,7 @@ public class SendServlet extends HttpServlet {
         if (filePart == null) {
             attaches = ImmutableList.of();
         } else {
-            attaches = ImmutableList.of(Attachments.getAttach(filePart.getSubmittedFileName(), filePart.getInputStream()));
+            attaches = ImmutableList.of(Attachments.getAttach(filePart.getSubmittedFileName(), filePart.getContentType(), filePart.getInputStream()));
         }
         String groupResult;
         try {
