@@ -7,9 +7,10 @@ import org.apache.commons.io.IOUtils;
 import ru.javaops.masterjava.service.mail.util.MailUtils;
 import ru.javaops.masterjava.util.Functions;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -20,8 +21,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public class WebUtil {
 
-    public static void doAndWriteResponse(HttpServletResponse resp, Functions.SupplierEx<String> doer) throws IOException {
-        resp.setCharacterEncoding("UTF-8");
+    public static void doAndWriteResponse(ServletResponse response, Functions.SupplierEx<String> doer) throws IOException {
+		response.setCharacterEncoding("UTF-8");
         String result;
         try {
             log.info("Start processing");
@@ -32,8 +33,13 @@ public class WebUtil {
             String message = e.getMessage();
             result = (message != null) ? message : e.getClass().getName();
         }
-        resp.getWriter().write(result);
+		response.getWriter().write(result);
     }
+
+	public static void doAndWriteResponse(AsyncContext asyncContext, Functions.SupplierEx<String> doer) throws IOException {
+		doAndWriteResponse(asyncContext.getResponse(), doer);
+		asyncContext.complete();
+	}
 
     public static String getNotEmptyUsers(HttpServletRequest req) {
         String users = req.getParameter("users");

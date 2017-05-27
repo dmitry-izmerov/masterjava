@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.javaops.masterjava.service.mail.GroupResult;
 import ru.javaops.masterjava.service.mail.util.MailUtils.MailObject;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -14,12 +15,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import static ru.javaops.masterjava.webapp.WebUtil.createMailObject;
 import static ru.javaops.masterjava.webapp.WebUtil.doAndWriteResponse;
 import static ru.javaops.masterjava.webapp.akka.AkkaWebappListener.akkaActivator;
 
-@WebServlet(value = "/sendAkkaActor", loadOnStartup = 1)
+@WebServlet(value = "/sendAkkaActor", asyncSupported = true, loadOnStartup = 1)
 @Slf4j
 @MultipartConfig
 public class AkkaActorSendServlet extends HttpServlet {
@@ -36,7 +38,14 @@ public class AkkaActorSendServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
-        doAndWriteResponse(resp, () -> sendAkka(createMailObject(req)));
+		AsyncContext asyncContext = req.startAsync();
+		AkkaWebappListener.executorService.execute(() -> {
+			try {
+				doAndWriteResponse(asyncContext, () -> sendAkka(createMailObject((HttpServletRequest) asyncContext.getRequest())));
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+			}
+		});
     }
 
     private String sendAkka(MailObject mailObject) {
